@@ -138,6 +138,13 @@ local function has_terminal(content)
   return false
 end
 
+---Terminal line cap for inline rendering of an execute tool call.
+---@return integer
+local function terminal_max_lines()
+  local cfg = require("acp.config").options.ui
+  return cfg.terminal_max_lines or cfg.diff_max_lines or 24
+end
+
 ---One rendered text block for a tool call (first line = title + status).
 ---Content lines are cached on the call (`_lines`) so status-only updates
 ---don't re-diff the full file text; the session invalidates the cache when
@@ -156,6 +163,20 @@ function M.tool_text(call)
     end
   end
   local lines = { head }
+  -- For execute tool calls, show the command from rawInput and the
+  -- terminal output from the associated terminal. Devin creates the
+  -- terminal separately and never embeds it in the tool call content,
+  -- so we render both here.
+  if call.kind == "execute" then
+    if call.rawInput and call.rawInput.command then
+      table.insert(lines, "  $ " .. call.rawInput.command)
+    end
+    if call.terminal_id then
+      local terminal = require("acp.agent.terminal")
+      local term_lines = terminal.render_lines(call.terminal_id, terminal_max_lines())
+      vim.list_extend(lines, term_lines)
+    end
+  end
   vim.list_extend(lines, content_lines)
   return table.concat(lines, "\n")
 end

@@ -176,4 +176,54 @@ function T.tool_content_lines_renders_resource_content()
   eq({ "  cd /tmp && ls" }, lines)
 end
 
+function T.tool_text_shows_command_from_rawInput()
+  ui({ show_diffs = true })
+  local text = events.tool_text({
+    title = "Ran command",
+    kind = "execute",
+    status = "completed",
+    rawInput = { command = "cd /tmp && git log --oneline" },
+    content = { { type = "content", content = { type = "text", text = "Exited with code 0" } } },
+  })
+  eq(true, text:find("$ cd /tmp && git log --oneline", 1, true) ~= nil, "command shown: " .. text)
+  eq(true, text:find("Exited with code 0", 1, true) ~= nil, "content still shown: " .. text)
+end
+
+function T.tool_text_shows_terminal_output_for_execute()
+  ui({ show_diffs = true })
+  local terminal = require("acp.agent.terminal")
+  local id = terminal.create({ command = "echo hello_world", cwd = "/tmp" }, "/tmp", function() end)
+  -- Wait for exit.
+  local exit
+  terminal.wait_for_exit(id, function(e)
+    exit = e
+  end)
+  vim.wait(5000, function()
+    return exit ~= nil
+  end)
+  local text = events.tool_text({
+    title = "Ran command",
+    kind = "execute",
+    status = "completed",
+    terminal_id = id,
+    rawInput = { command = "echo hello_world" },
+    content = { { type = "content", content = { type = "text", text = "Exited with code 0" } } },
+  })
+  terminal.release(id)
+  eq(true, text:find("hello_world", 1, true) ~= nil, "terminal output shown: " .. text)
+  eq(true, text:find("$ echo hello_world", 1, true) ~= nil, "command shown: " .. text)
+end
+
+function T.tool_text_does_not_show_command_for_non_execute()
+  ui({ show_diffs = true })
+  local text = events.tool_text({
+    title = "Edited file.lua",
+    kind = "edit",
+    status = "completed",
+    rawInput = { command = "should not appear" },
+    content = {},
+  })
+  eq(true, text:find("should not appear", 1, true) == nil, "no command prefix for edit: " .. text)
+end
+
 return T
