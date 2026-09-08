@@ -186,7 +186,7 @@ function T.tool_text_shows_command_from_rawInput()
     content = { { type = "content", content = { type = "text", text = "Exited with code 0" } } },
   })
   eq(true, text:find("$ cd /tmp && git log --oneline", 1, true) ~= nil, "command shown: " .. text)
-  eq(true, text:find("Exited with code 0", 1, true) ~= nil, "content still shown: " .. text)
+  eq(true, text:find("Exited with code 0", 1, true) ~= nil, "content shown without terminal: " .. text)
 end
 
 function T.tool_text_shows_terminal_output_for_execute()
@@ -212,6 +212,7 @@ function T.tool_text_shows_terminal_output_for_execute()
   terminal.release(id)
   eq(true, text:find("hello_world", 1, true) ~= nil, "terminal output shown: " .. text)
   eq(true, text:find("$ echo hello_world", 1, true) ~= nil, "command shown: " .. text)
+  eq(true, text:find("Exited with code", 1, true) == nil, "redundant exit text filtered: " .. text)
 end
 
 function T.tool_text_does_not_show_command_for_non_execute()

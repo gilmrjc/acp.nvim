@@ -175,6 +175,15 @@ function M.tool_text(call)
       local terminal = require("acp.agent.terminal")
       local term_lines = terminal.render_lines(call.terminal_id, terminal_max_lines())
       vim.list_extend(lines, term_lines)
+      -- The terminal already shows the exit code; drop the redundant
+      -- "Exited with code N" text that the agent sends in the final update.
+      local filtered = {}
+      for _, l in ipairs(content_lines) do
+        if not l:match("^%s*Exited with code") then
+          table.insert(filtered, l)
+        end
+      end
+      content_lines = filtered
     end
   end
   vim.list_extend(lines, content_lines)
