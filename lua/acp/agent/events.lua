@@ -18,6 +18,11 @@ function M.content_text(content)
   if content.type == "text" then
     return content.text or ""
   end
+  if content.type == "resource" then
+    -- Embedded resource: the text field holds the content (e.g. a shell
+    -- command string when mimeType is text/x-shellscript).
+    return (content.resource and content.resource.text) or ""
+  end
   if content.type == "resource_link" then
     return content.uri or content.name or ""
   end

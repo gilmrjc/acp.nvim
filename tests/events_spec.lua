@@ -146,4 +146,34 @@ function T.plan_text_step_glyphs()
   eq("Plan:\n  ✓ done step\n  ◐ active step\n  ○ todo step", text)
 end
 
+function T.content_text_extracts_resource_text()
+  local text = events.content_text({
+    type = "resource",
+    resource = { uri = "file:///tmp/script.sh", mimeType = "text/x-shellscript", text = "echo hello" },
+  })
+  eq("echo hello", text)
+end
+
+function T.content_text_resource_without_text_returns_empty()
+  local text = events.content_text({
+    type = "resource",
+    resource = { uri = "file:///tmp/binary.dat", mimeType = "application/octet-stream" },
+  })
+  eq("", text)
+end
+
+function T.tool_content_lines_renders_resource_content()
+  ui({ show_diffs = true })
+  local lines = events.tool_content_lines({
+    {
+      type = "content",
+      content = {
+        type = "resource",
+        resource = { uri = "file:///tmp/cmd.sh", mimeType = "text/x-shellscript", text = "cd /tmp && ls" },
+      },
+    },
+  })
+  eq({ "  cd /tmp && ls" }, lines)
+end
+
 return T

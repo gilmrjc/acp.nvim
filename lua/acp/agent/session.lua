@@ -873,6 +873,8 @@ function Session:on_notification(method, params)
       status = u.status or "pending",
       content = u.content,
       locations = u.locations,
+      rawInput = u.rawInput,
+      rawOutput = u.rawOutput,
     }
     local tool_kind = self:track_subagent(id, self.tool_calls[id])
     chat().append(self.thread, "tool", events.tool_text(self.tool_calls[id]), id, tool_kind)
